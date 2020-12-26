@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">GitUserSearch</string>
+    <string name="search">Search</string>
+    <string name="search_hint">Github user id</string>
+    <string name="user_picture">User profile picture</string>
+    <string name="user_input_warning">You need to enter user id</string>
+    <string name="last_updated">Last Updated</string>
+    <string name="stars">Stars</string>
+    <string name="forks">Forks</string>
+</resources>
