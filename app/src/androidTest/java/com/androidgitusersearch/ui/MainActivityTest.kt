@@ -22,6 +22,7 @@ import com.androidgitusersearch.R
 import com.androidgitusersearch.model.RepoModel
 import com.androidgitusersearch.model.UserModel
 import com.androidgitusersearch.util.ConvertHelper
+import com.androidgitusersearch.util.RecyclerViewHelper
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.gson.Gson
@@ -199,14 +200,13 @@ class MainActivityTest{
 
         onView(withId(R.id.recycler_view_repos))
             .check(matches(isDisplayed()))
-            .perform(actionOnItemAtPosition<RepoAdapter.ViewHolder>(0, ViewActions.click()))
 
-
-        onView(withId(R.id.text_view_last_update_value))
+        onView(RecyclerViewHelper(R.id.recycler_view_repos)
+            .atPositionOnView(0, R.id.text_view_repo_name))
             .check(matches(isDisplayed()))
             .check(
                 matches(
-                    withText(ConvertHelper.convertUpdateDate("2020-11-11T00:57:15Z"))
+                    withText("boysenberry-repo-1")
                 )
             )
 
