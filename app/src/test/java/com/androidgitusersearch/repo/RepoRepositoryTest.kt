@@ -22,7 +22,7 @@ import java.lang.reflect.Type
  */
 
 @ExperimentalCoroutinesApi
-internal class RepoRepositoryTest {
+class RepoRepositoryTest {
 
     @get:Rule
     var coroutinesTestRule = CoroutineTestRule()
@@ -44,18 +44,9 @@ internal class RepoRepositoryTest {
         val repoRepository = RepoRepository(FakeRepoApiService(mockUser))
 
         GlobalScope.launch(Dispatchers.Main) {
+            //Checking if api is successful
             repoRepository.getUserById("royallachinov")
-
             Assert.assertEquals(repoRepository.getUserById("royallachinov"), mockUser)
-
-            Assert.assertNotNull(mockUser.name)
-            Assert.assertEquals(mockUser.name, "Royal Lachinov")
-
-            Assert.assertNotNull(mockUser.avatarUrl)
-            Assert.assertEquals(
-                mockUser.avatarUrl,
-                "https://avatars1.githubusercontent.com/u/10083621?v=4"
-            )
         }
     }
 
@@ -84,6 +75,7 @@ internal class RepoRepositoryTest {
                     FakeRepoMediator(repoList)
                 }
             ).flow
+
             Assert.assertNotNull(pagingDataFlow)
             Assert.assertNotNull(repoRepository.getSearchResultStream("royallachinov"))
             Assert.assertEquals(pagingDataFlow,mockResponse)
