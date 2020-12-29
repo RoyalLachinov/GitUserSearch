@@ -15,5 +15,6 @@ class LaunchActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_launch)
         startActivity(Intent(this,MainActivity::class.java))
+        finish()
     }
 }

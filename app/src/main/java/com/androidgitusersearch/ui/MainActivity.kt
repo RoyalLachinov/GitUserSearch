@@ -5,10 +5,9 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import androidx.activity.viewModels
 import androidx.core.view.isVisible
-import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import com.androidgitusersearch.R
@@ -31,19 +30,21 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 
+
 /**
  * Created by Royal Lachinov on 2020-12-24.
  */
-
 
 class MainActivity : AppCompatActivity() {
 
     private var binding: ActivityMainBinding? = null
     private val viewBindingMainActivity get() = binding!!
 
-    private lateinit var repoViewModel: RepoViewModel
-    val repoAdapter = RepoAdapter()
+    private val repoViewModel : RepoViewModel by viewModels{
+        ObjectInjector.provideViewModelFactory()
+    }
 
+    val repoAdapter = RepoAdapter()
     private var userSearchJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,13 +53,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBindingMainActivity.root)
 
-        repoViewModel = ViewModelProvider(this, ObjectInjector.provideViewModelFactory())
-            .get(RepoViewModel::class.java)
-
         binding!!.recyclerViewRepos.adapter = repoAdapter
         repoViewModel.getUserById("royallachinov")
-        repoViewModel.userLiveData.observe(this@MainActivity, userObjectObserver)
-
+        repoViewModel.userLiveData.observe(this){
+            userObjectObserver(it)
+        }
 
         search(viewBindingMainActivity.editTextSearch.text.toString())
         initSearch(viewBindingMainActivity.editTextSearch.text.toString())
@@ -67,7 +66,6 @@ class MainActivity : AppCompatActivity() {
             viewBindingMainActivity.buttonSearch.hideKeyboard()
             updateUserRepoList()
         }
-
 
         repoAdapter.setItemClickListener(object : RepoAdapter.ItemClickListener{
             override fun onItemClicked(updateDate: String, starCount: Int, forksCount: Int) {
@@ -99,7 +97,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val userObjectObserver = Observer<ApiResponse> { apiResponse ->
+    private fun userObjectObserver(apiResponse: ApiResponse){
+
         if (apiResponse.successBody != null) {
             val userModel = apiResponse.successBody as UserModel
             userModel.let {
@@ -119,7 +118,6 @@ class MainActivity : AppCompatActivity() {
             viewBindingMainActivity.textViewEmptyMessage.text = errorMessage
         }
 
-
     }
 
     private fun search(userId: String) {
@@ -132,16 +130,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun handleTextChanged(text:String){
+        if (viewBindingMainActivity.editTextSearch.selectionStart == 0 || text.trim().isNotEmpty()){
+            viewBindingMainActivity.searchInputLayout.error = null
+        } else {
+            viewBindingMainActivity.searchInputLayout.error = getString(R.string.user_input_warning)
+        }
+    }
+
     private fun initSearch(query: String) {
         viewBindingMainActivity.editTextSearch.setText(query)
 
-        viewBindingMainActivity.editTextSearch.addTextChangedListener {
-            if (viewBindingMainActivity.editTextSearch.selectionStart == 0 || it.toString().trim().isNotEmpty()){
-                viewBindingMainActivity.searchInputLayout.error = null
-            } else {
-                viewBindingMainActivity.searchInputLayout.error = getString(R.string.user_input_warning)
-            }
-
+        viewBindingMainActivity.editTextSearch.doOnTextChanged { text, _, _, _ ->
+            handleTextChanged(text = text.toString())
         }
 
         viewBindingMainActivity.editTextSearch.setOnEditorActionListener { _, actionId, _ ->
@@ -152,6 +153,7 @@ class MainActivity : AppCompatActivity() {
                 false
             }
         }
+
         viewBindingMainActivity.editTextSearch.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
                 updateUserRepoList()
